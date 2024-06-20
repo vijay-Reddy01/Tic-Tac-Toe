@@ -1,103 +1,170 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
+import java.util.Random;
 
-public class TicTacToeGUI {
-    private JFrame frm ;
-    private JButton[][] btn;
-    private char player_xyz;
-    private char[][] base;
-    JLabel textfield = new JLabel();
+public class Game implements ActionListener {
 
-    public TicTacToeGUI() {
-      frm= new JFrame("Tic Tac Toe");
-        frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frm.setSize(400, 400);
-        frm.setLayout(new GridLayout(3, 3));
-        textfield.setBackground(new Color(25,25,25));
-		textfield.setForeground(new Color(25,255,0));
-		textfield.setFont(new Font("Ink Free",Font.BOLD,75));
-		textfield.setHorizontalAlignment(JLabel.CENTER);
-		textfield.setText("Tic-Tac-Toe");
-		textfield.setOpaque(true);
+    private Random random = new Random();
+    private JFrame frame = new JFrame();
+    private JPanel titlePanel = new JPanel();
+    private JPanel buttonPanel = new JPanel();
+    private JLabel textField = new JLabel();
+    private JButton[] buttons = new JButton[9];
+    private JButton replayButton = new JButton("Replay");
+    private boolean player1Turn;
 
-        btn = new JButton[3][3];
-        base = new char[3][3];
-        player_xyz = 'X';
+    Game() {
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 800);
+        frame.getContentPane().setBackground(new Color(50, 50, 50));
+        frame.setLayout(new BorderLayout());
+        frame.setVisible(true);
 
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                btn[i][j] = new JButton("");
-                btn[i][j].setFont(new Font("cooper black", Font.PLAIN, 60));
-                btn[i][j].setFocusPainted(false);
-                btn[i][j].addActionListener(new ButtonClickListener(i, j));
-                frm.add(btn[i][j]);
-                base[i][j] = ' ';
-            }
+        textField.setBackground(new Color(25, 25, 25));
+        textField.setForeground(new Color(25, 255, 0));
+        textField.setFont(new Font("Ink Free", Font.BOLD, 75));
+        textField.setHorizontalAlignment(JLabel.CENTER);
+        textField.setText("Tic-Tac-Toe");
+        textField.setOpaque(true);
+
+        titlePanel.setLayout(new BorderLayout());
+        titlePanel.setBounds(0, 0, 800, 100);
+
+        buttonPanel.setLayout(new GridLayout(3, 3));
+        buttonPanel.setBackground(new Color(150, 150, 150));
+
+        for (int i = 0; i < 9; i++) {
+            buttons[i] = new JButton();
+            buttonPanel.add(buttons[i]);
+            buttons[i].setFont(new Font("MV Boli", Font.BOLD, 120));
+            buttons[i].setFocusable(false);
+            buttons[i].addActionListener(this);
         }
 
-        frm.setVisible(true);
+        titlePanel.add(textField);
+        frame.add(titlePanel, BorderLayout.NORTH);
+        frame.add(buttonPanel);
+
+        replayButton.setFont(new Font("MV Boli", Font.BOLD, 30));
+        replayButton.setFocusable(false);
+        replayButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetGame();
+            }
+        });
+        replayButton.setVisible(false); // Initially hide replay button
+
+        JPanel replayPanel = new JPanel();
+        replayPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        replayPanel.setPreferredSize(new Dimension(800, 100));
+        replayPanel.setBackground(new Color(50, 50, 50));
+        replayPanel.add(replayButton);
+        frame.add(replayPanel, BorderLayout.SOUTH);
+
+        firstTurn();
     }
 
-    private class ButtonClickListener implements ActionListener {
-        private int row;
-        private int column;
-
-        public ButtonClickListener(int row, int column) {
-            this.row = row;
-            this.column = column;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (btn[row][column].getText().equals("") && !gameOver()) {
-                btn[row][column].setText(String.valueOf(player_xyz));
-                base[row][column] = player_xyz;
-                if (hasWon(player_xyz)) {
-                    JOptionPane.showMessageDialog(frm, "Player " + player_xyz + " has won!");
-                } else if (baseFull()) {
-                    JOptionPane.showMessageDialog(frm, "The game is a draw!");
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        for (int i = 0; i < 9; i++) {
+            if (e.getSource() == buttons[i]) {
+                if (player1Turn) {
+                    if (buttons[i].getText().equals("")) {
+                        buttons[i].setForeground(new Color(255, 0, 0));
+                        buttons[i].setText("X");
+                        player1Turn = false;
+                        textField.setText("O turn");
+                        check();
+                    }
                 } else {
-                    player_xyz = (player_xyz == 'X') ? 'O' : 'X';
+                    if (buttons[i].getText().equals("")) {
+                        buttons[i].setForeground(new Color(0, 0, 255));
+                        buttons[i].setText("O");
+                        player1Turn = true;
+                        textField.setText("X turn");
+                        check();
+                    }
                 }
             }
         }
     }
 
-    private boolean hasWon(char player) {
-        for (int i = 0; i < 3; i++) {
-            if (base[i][0] == player && base[i][1] == player && base[i][2] == player) {
-                return true;
-            }
-            if (base[0][i] == player && base[1][i] == player && base[2][i] == player) {
-                return true;
-            }
+    private void firstTurn() {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        if (base[0][0] == player && base[1][1] == player && base[2][2] == player) {
-            return true;
+
+        if (random.nextInt(2) == 0) {
+            player1Turn = true;
+            textField.setText("X turn");
+        } else {
+            player1Turn = false;
+            textField.setText("O turn");
         }
-        if (base[0][2] == player && base[1][1] == player && base[2][0] == player) {
-            return true;
-        }
-        return false;
     }
 
-    private boolean baseFull() {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (base[i][j] == ' ') {
-                    return false;
+    private void check() {
+        // Check win conditions for X and O
+        if (checkWinCondition("X")) {
+            endGame("X wins!");
+        } else if (checkWinCondition("O")) {
+            endGame("O wins!");
+        } else {
+            // Check for draw condition
+            boolean draw = true;
+            for (int i = 0; i < 9; i++) {
+                if (buttons[i].getText().isEmpty()) {
+                    draw = false;
+                    break;
                 }
             }
+            if (draw) {
+                endGame("It's a draw!");
+            }
         }
-        return true;
     }
 
-    private boolean gameOver() {
-        return hasWon('X') || hasWon('O') || baseFull();
+    private boolean checkWinCondition(String player) {
+        // Check all possible winning combinations
+        return (buttons[0].getText().equals(player) && buttons[1].getText().equals(player) && buttons[2].getText().equals(player))
+                || (buttons[3].getText().equals(player) && buttons[4].getText().equals(player) && buttons[5].getText().equals(player))
+                || (buttons[6].getText().equals(player) && buttons[7].getText().equals(player) && buttons[8].getText().equals(player))
+                || (buttons[0].getText().equals(player) && buttons[3].getText().equals(player) && buttons[6].getText().equals(player))
+                || (buttons[1].getText().equals(player) && buttons[4].getText().equals(player) && buttons[7].getText().equals(player))
+                || (buttons[2].getText().equals(player) && buttons[5].getText().equals(player) && buttons[8].getText().equals(player))
+                || (buttons[0].getText().equals(player) && buttons[4].getText().equals(player) && buttons[8].getText().equals(player))
+                || (buttons[2].getText().equals(player) && buttons[4].getText().equals(player) && buttons[6].getText().equals(player));
+    }
+
+    private void endGame(String message) {
+        for (int i = 0; i < 9; i++) {
+            buttons[i].setEnabled(false);
+        }
+        textField.setText(message);
+        replayButton.setVisible(true); // Show replay button when game ends
+    }
+
+    private void resetGame() {
+        for (int i = 0; i < 9; i++) {
+            buttons[i].setText("");
+            buttons[i].setEnabled(true);
+            buttons[i].setForeground(null);
+            buttons[i].setBackground(null);
+        }
+        replayButton.setVisible(false); // Hide replay button again
+        firstTurn(); // Start a new game
     }
 
     public static void main(String[] args) {
-        TicTacToeGUI t =new TicTacToeGUI();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new Game();
+            }
+        });
     }
 }
